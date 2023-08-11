@@ -1,0 +1,352 @@
+# Python Básico
+# Paola Andrea Ayala Pineda
+# Carné 19091
+# Hoja de trabajo no. 1 Parte 1
+
+import numpy as np
+import math as mt
+import time
+import matplotlib
+import matplotlib.pyplot as plt
+import sympy as smp
+import scipy as sp
+import scipy.optimize as optimize
+
+from math import sin as sin 
+from math import cos as cos 
+from math import *
+
+from sympy import *
+from sympy import Derivative, Function, symbols, Subs
+from sympy.abc import x, y
+from scipy.misc import derivative as diff
+
+
+# DEFINICIONES
+
+def MetodoBiseccion(func_i,a,b,iters=8,tabla='N',tol=5E-4):
+    #Evalúe los extremos del intervalo
+    fa = a
+    fb = b
+
+
+    if tabla == 'S' or tabla =='Y': #Imprima la tabla si selecciona la opción
+       print(' ')
+       print('Resultados del Método de Bisección') #Encabezado Tabla
+       print(' iter        a          c           b        f(a)       f(c)       f(b)     Error aproximado')
+
+    for i in range(iters): #Empiece el ciclo for de la Bisección
+        # Verifique si hay un cambio de signo entre a y b
+        if fa * fb > 0:
+            break  #Salga del ciclo for si no hay un cambio de signo
+        xc = 0.5 * (a + b) #Punto Medio
+        ErrorAprox = abs(b-xc)
+        fc = func_i(xc) #Valor funcional en el punto medio
+        if tabla == 'S' or tabla =='Y': #Imprima los resultados de cada iteración
+           print('{:3d}    {:9.7f}   {:9.7f}  {:9.7f}   {:8.4f}   {:8.4f}   {:8.4f}     {:5.3e}'. format(i+1, a, xc, b, func_i(a), func_i(xc), func_i(b), ErrorAprox))
+        if fc == 0:
+            break #Salga del ciclo for si se encuentra la raíz exacta
+        #Actualice el nuevo intervalo
+        if fa * fc < 0:  # El nuevo intervalo es [a xc]
+            b = xc
+        else:           # El nuevo intervalo es [xc xb]
+            a = xc
+            fa = fc     #Actualice el valor funcional del extremo izquierdo
+        #fin if-else
+        # Termine la iteración si el Error Aproximado es menor a una tolerancia
+        if ErrorAprox < tol:
+            print(' ')
+            print('Se satisface la tolerancia especificada después de', i + 1, 'iteraciones.')
+            break
+
+    #fin for
+
+    #La raiz aproximada es el punto medio del último intervalo
+    xr = 0.5 * (a + b)
+
+    #Imprima los resultados del método de Bisección cuando No se satisface y se satisface la tolerancia
+    if fa * fb > 0:
+        print('El método de Bisección no encontró una raíz aproximada después de {:3d} iteraciones'. format(i+1))
+        print('El cambio de signo f(a)f(b)<0 no se satisface')
+        print('--------------------------------------------------------------------')
+        print(' ')
+    else:
+        print(' ')
+        print('--------------------------------------------------------------------')
+        print('Método de Bisección: Después de {:3d} iteraciones'. format(i+1))
+        print('Una raíz de f(x) se encuentra encerrada entre [{:7.5f} ,  {:7.5f}] . \n'. format(a, b))
+        print('La raíz aproximada de f(x) es   {:2.7f} . '. format(xr))
+        print('--------------------------------------------------------------------')
+        print(' ')
+    #Fin del if con el resultado final del Método
+
+    return xr #El único output es la raíz aproximada
+
+#Fin de la función MetodoBisección
+
+
+def MetodoNewton(funcion,derivada,est_inicial,iters=4,tabla='N',tol=5E-4):
+
+    xi=est_inicial  #El estimado inicial es la iteracion x0
+
+    if tabla == 'S' or tabla =='Y': #Imprima la tabla si selecciona la opción
+       print(' ')
+       print('Iteraciones del Método de Newton') #Encabezado Tabla
+       print(' iter         xi            f(xi)      Error Aproximado ')
+       #print(' iter     xi        f(xi)      df(xi)    xi+1')
+    for i in range(iters):
+        if derivada(xi) == 0:  #Termine la iteración si la derivada es igual a cero
+            break
+        #Evalúe la función y la derivada en la estimación inicial
+        fxi = funcion(xi)           #valor funcional
+        dfxi = derivada(xi)         #Pendiente de la recta tangente
+        x_ant = xi                  #Valor anterior de la estimación
+        xi = xi - fxi/dfxi          #Nuevo estimación de la raíz
+        ErrorAprox=abs(xi-x_ant)    #Error aproximado
+
+        #Imprima la tabla de Resultados
+        if tabla == 'S' or tabla =='Y': #Imprima la tabla si selecciona la opción
+           print('{:3d}    {:13.10f}     {:6.3e}     {:5.3e} '. format(i+1, xi, funcion(xi), ErrorAprox))
+           #print('{:3d}    {:7.4f}    {:7.4f}    {:7.4f}    {:7.4f}'.format(i+1, x_ant, fxi, dfxi, xi))
+        #fin if
+
+        # Termine la iteración si el Error Aproximado es menor a una tolerancia
+        if ErrorAprox < tol:
+            print(' ')
+            print('Se satisface la tolerancia especificada después de', i + 1, 'iteraciones.')
+            break
+    #fin ciclo for
+
+    # Imprima los resultados del método de Newton
+    if derivada(xi) == 0:
+        print('El método de Newton no encontró una raíz aproximada después de {:3d} iteraciones'.format(i+1))
+        print('La derivada de la función es cero en x_i')
+        print('--------------------------------------------------------------------')
+        print(' ')
+    else:
+        print(' ')
+        print('--------------------------------------------------------------------')
+        print('Método de Newton: Después de {:3d} iteraciones'.format(i+1))
+        print('La raíz aproximada de f(x) es   {:2.12f} . '.format(xi))
+        print('--------------------------------------------------------------------')
+        print(' ')
+
+        #Fin if-else
+
+    return xi  # El único output es la raíz aproximada
+
+#Fin de la función MetodoNewton
+
+
+def MetodoNewton1(funcion,derivada,est_inicial,iters=4,tabla='N',tol=1E-11):
+
+    xi=est_inicial  #El estimado inicial es la iteracion x0
+
+    if tabla == 'S' or tabla =='Y': #Imprima la tabla si selecciona la opción
+       print(' ')
+       print('Iteraciones del Método de Newton') #Encabezado Tabla
+       print(' iter         xi            f(xi)      Error Aproximado ')
+       #print(' iter     xi        f(xi)      df(xi)    xi+1')
+    for i in range(iters):
+        if derivada(xi) == 0:  #Termine la iteración si la derivada es igual a cero
+            break
+        #Evalúe la función y la derivada en la estimación inicial
+        fxi = funcion(xi)           #valor funcional
+        dfxi = derivada(xi)         #Pendiente de la recta tangente
+        x_ant = xi                  #Valor anterior de la estimación
+        xi = xi - fxi/dfxi          #Nuevo estimación de la raíz
+        ErrorAprox=abs(xi-x_ant)    #Error aproximado
+
+        #Imprima la tabla de Resultados
+        if tabla == 'S' or tabla =='Y': #Imprima la tabla si selecciona la opción
+           print('{:3d}    {:13.10f}     {:6.3e}     {:5.3e} '. format(i+1, xi, funcion(xi), ErrorAprox))
+           #print('{:3d}    {:7.4f}    {:7.4f}    {:7.4f}    {:7.4f}'.format(i+1, x_ant, fxi, dfxi, xi))
+        #fin if
+
+        # Termine la iteración si el Error Aproximado es menor a una tolerancia
+        if ErrorAprox < tol:
+            print(' ')
+            print('Se satisface la tolerancia especificada después de', i + 1, 'iteraciones.')
+            break
+    #fin ciclo for
+
+    # Imprima los resultados del método de Newton
+    if derivada(xi) == 0:
+        print('El método de Newton no encontró una raíz aproximada después de {:3d} iteraciones'.format(i+1))
+        print('La derivada de la función es cero en x_i')
+        print('--------------------------------------------------------------------')
+        print(' ')
+    else:
+        print(' ')
+        print('--------------------------------------------------------------------')
+        print('Método de Newton: Después de {:3d} iteraciones'.format(i+1))
+        print('La raíz aproximada de f(x) es   {:2.12f} . '.format(xi))
+        print('--------------------------------------------------------------------')
+        print(' ')
+
+        #Fin if-else
+
+    return xi  # El único output es la raíz aproximada
+
+#Fin de la función MetodoNewton1
+
+
+def MetodoNewton2(funcion,derivada,est_inicial,iters=4,tabla='N',tol=1E-13):
+
+    xi=est_inicial  #El estimado inicial es la iteracion x0
+
+    if tabla == 'S' or tabla =='Y': #Imprima la tabla si selecciona la opción
+       print(' ')
+       print('Iteraciones del Método de Newton') #Encabezado Tabla
+       print(' iter         xi            f(xi)      Error Aproximado ')
+       #print(' iter     xi        f(xi)      df(xi)    xi+1')
+    for i in range(iters):
+        if derivada(xi) == 0:  #Termine la iteración si la derivada es igual a cero
+            break
+        #Evalúe la función y la derivada en la estimación inicial
+        fxi = funcion(xi)           #valor funcional
+        dfxi = derivada(xi)         #Pendiente de la recta tangente
+        x_ant = xi                  #Valor anterior de la estimación
+        xi = xi - fxi/dfxi          #Nuevo estimación de la raíz
+        ErrorAprox=abs(xi-x_ant)    #Error aproximado
+
+        #Imprima la tabla de Resultados
+        if tabla == 'S' or tabla =='Y': #Imprima la tabla si selecciona la opción
+           print('{:3d}    {:13.10f}     {:6.3e}     {:5.3e} '. format(i+1, xi, funcion(xi), ErrorAprox))
+           #print('{:3d}    {:7.4f}    {:7.4f}    {:7.4f}    {:7.4f}'.format(i+1, x_ant, fxi, dfxi, xi))
+        #fin if
+
+        # Termine la iteración si el Error Aproximado es menor a una tolerancia
+        if ErrorAprox < tol:
+            print(' ')
+            print('Se satisface la tolerancia especificada después de', i + 1, 'iteraciones.')
+            break
+    #fin ciclo for
+
+    # Imprima los resultados del método de Newton
+    if derivada(xi) == 0:
+        print('El método de Newton no encontró una raíz aproximada después de {:3d} iteraciones'.format(i+1))
+        print('La derivada de la función es cero en x_i')
+        print('--------------------------------------------------------------------')
+        print(' ')
+    else:
+        print(' ')
+        print('--------------------------------------------------------------------')
+        print('Método de Newton: Después de {:3d} iteraciones'.format(i+1))
+        print('La raíz aproximada de f(x) es   {:2.12f} . '.format(xi))
+        print('--------------------------------------------------------------------')
+        print(' ')
+
+        #Fin if-else
+
+    return xi  # El único output es la raíz aproximada
+
+#Fin de la función MetodoNewton2
+
+def NewtonMod1(fx0, x):
+    df = smp.diff(fx0,x)
+    print('La derivada de la función es: ')
+    print(df)      
+
+def NewtonMod2(fx1, x):
+    df = smp.diff(fx1,x)
+    print('La derivada de la función es: ')
+    print(df) 
+
+
+input('¡Bienvenido! Presiona enter para iniciar el programa')
+
+
+########################
+# Ejercicio 8 Inciso A
+########################
+print('Ejercicio 8 Inciso A \n')
+
+inicio = time.time()
+while True:
+    fx0 = (7*smp.exp(-x/7))*smp.sin(2*x) - 1
+    NewtonMod1(fx0,x)
+    final = time.time()
+    break
+print('Duración de la función NewtonMod1 ', final-inicio, 'segundos.\n')
+
+input('Presiona enter para continuar el programa')
+
+inicio = time.time()
+while True:
+    funcion = lambda x : (7*np.exp(-x/7))*np.sin(2*x) - 1
+    derivada = lambda x : (np.exp(-x/7))*(14*np.cos(2*x)-np.sin(2*x))
+    est_inicial = 12
+    MetodoNewton1(funcion,derivada,est_inicial,iters=4,tabla='N',tol=1E-11)
+    final = time.time()
+    break
+print('Duración de la función MetodoNewton1 ', final-inicio, 'segundos.\n')
+input('\nPresiona enter para continuar el programa\n')
+
+
+#######################
+#Ejercicio 8 Inciso B
+#######################
+print('')
+print('\nEjercicio 8 Inciso B \n')
+
+inicio = time.time()
+while True:
+    fx1 = ((3*smp.cos(2*x)) - (2*smp.sin(3*x)))/((x**2) + smp.exp(-x))
+    NewtonMod2(fx1, x)
+    final = time.time()
+    break
+print('Duración de la función NewtonMod2 ', final-inicio, 'segundos.\n')
+
+input('Presiona enter para continuar el programa')
+
+inicio = time.time()
+while True:
+    funcion = lambda x : ((3*np.cos(2*x)) - (2*np.sin(3*x)))/((x**2) + np.exp(-x))
+    derivada = lambda x : (((-6*np.sin(2*x))-6*np.cos(3*x))/((x**2) + np.exp(-x))) - ((2*x - np.exp(-x))*(3*np.cos(2*x))-2*np.sin(3*x))/((x**2) + np.exp(-x))**2
+    est_inicial = 0
+    MetodoNewton2(funcion,derivada,est_inicial,iters=4,tabla='N',tol= 1E-13)
+    final = time.time()
+    break
+print('Duración de la función MetodoNewton2 ', final-inicio, 'segundos.\n')
+
+#CONCLUSIÓN
+#La definición que representa a la función de NewtonMod1
+#calcula únicamente la derivada de la función 1 la cual 
+#es más reducida que la función 2 y por ende el programa 
+#no tarda nada en proporcionar ese resultado. 
+
+
+input('\nPresiona enter para continuar el siguiente ejercicio\n')
+
+
+#########################
+# Ejercicio 9 Inciso A
+#########################
+
+print('')
+print('\nEjercicio 9 Inciso A')
+A = 205000      # anualidad
+enganche = 0 
+P = 60000       # valor presente
+n = 5           # n número de períodos de interés
+func_i = (P*(x*(x+1)**n))/(((x+1)**n)-1) #funcion para hallar el interes, se sustituye i por x
+a = 1E-1
+b = 3E-1
+MetodoBiseccion(func_i,a,b,iters=8,tabla='N',tol=5E-4)
+
+input('\nPresiona enter para continuar el programa\n')
+
+
+
+#########################
+# Ejercicio 9 Inciso B
+#########################
+
+print('')
+print('\nEjercicio 9 Inciso B')
+func_i = lambda x: (P*(x*(x+1)**n))/(((x+1)**n)-1)
+dfi = lambda x: (-300000*x*(x + 1)**9/((x + 1)**5 - 1)**2) + (300000*x*(x + 1)**4/((x + 1)**5 - 1)) + (60000*(x + 1)**5/((x + 1)**5 - 1))
+est_inicial = 1E-1
+MetodoNewton(func_i,dfi,est_inicial,iters=4,tabla='N',tol=5E-4)
+
